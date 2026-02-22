@@ -21,9 +21,19 @@ args = "PromptStack CLI"
 name = "PromptStack CLI"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev -- --help"
+args = "npm run dev"
+waitForPort = 5000
 
-[workflows.workflow.metadata]
-outputType = "console"
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["node", "dist/server.js"]
+build = ["npm", "run", "build"]

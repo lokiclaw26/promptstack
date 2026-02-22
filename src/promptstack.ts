@@ -53,6 +53,10 @@ export class PromptStack {
     return { prompts: [] };
   }
 
+  reload(): void {
+    this.data = this.load();
+  }
+
   private save(): void {
     const dir = path.dirname(this.dataPath);
     if (!fs.existsSync(dir)) {
