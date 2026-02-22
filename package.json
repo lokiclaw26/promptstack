@@ -1,0 +1,31 @@
+{
+  "name": "promptstack",
+  "version": "1.0.0",
+  "description": "Prompt version control for AI power users - save, version, compare, and optimize your prompts",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "promptstack": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "tsx src/cli.ts"
+  },
+  "keywords": ["prompt", "ai", "version-control", "llm", "prompt-engineering"],
+  "author": "Loki AI",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "uuid": "^9.0.0",
+    "diff": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.0",
+    "@types/diff": "^5.0.0",
+    "typescript": "^5.3.0",
+    "tsx": "^4.7.0"
+  }
+}
