@@ -26,6 +26,7 @@ export interface Prompt {
   name: string;
   description: string;
   category: string;
+  tags: string[];
   versions: PromptVersion[];
   currentVersion: number;
   createdAt: string;
@@ -65,8 +66,13 @@ export class PromptStack {
     fs.writeFileSync(this.dataPath, JSON.stringify(this.data, null, 2));
   }
 
+  // Public save for external calls
+  saveData(): void {
+    this.save();
+  }
+
   // Create a new prompt
-  create(name: string, description: string, category: string, content: string): Prompt {
+  create(name: string, description: string, category: string, content: string, tags: string[] = []): Prompt {
     const promptId = uuidv4();
     const versionId = uuidv4();
     const now = new Date().toISOString();
@@ -76,6 +82,7 @@ export class PromptStack {
       name,
       description,
       category,
+      tags,
       versions: [{
         id: versionId,
         promptId,
@@ -180,6 +187,7 @@ export class PromptStack {
       p.name.toLowerCase().includes(lower) ||
       p.description.toLowerCase().includes(lower) ||
       p.category.toLowerCase().includes(lower) ||
+      (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
       p.versions.some(v => v.content.toLowerCase().includes(lower))
     );
   }

@@ -20,6 +20,9 @@ export class PromptStack {
         }
         return { prompts: [] };
     }
+    reload() {
+        this.data = this.load();
+    }
     save() {
         const dir = path.dirname(this.dataPath);
         if (!fs.existsSync(dir)) {
@@ -27,8 +30,12 @@ export class PromptStack {
         }
         fs.writeFileSync(this.dataPath, JSON.stringify(this.data, null, 2));
     }
+    // Public save for external calls
+    saveData() {
+        this.save();
+    }
     // Create a new prompt
-    create(name, description, category, content) {
+    create(name, description, category, content, tags = []) {
         const promptId = uuidv4();
         const versionId = uuidv4();
         const now = new Date().toISOString();
@@ -37,6 +44,7 @@ export class PromptStack {
             name,
             description,
             category,
+            tags,
             versions: [{
                     id: versionId,
                     promptId,
@@ -132,6 +140,7 @@ export class PromptStack {
         return this.data.prompts.filter(p => p.name.toLowerCase().includes(lower) ||
             p.description.toLowerCase().includes(lower) ||
             p.category.toLowerCase().includes(lower) ||
+            (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
             p.versions.some(v => v.content.toLowerCase().includes(lower)));
     }
     // Get stats

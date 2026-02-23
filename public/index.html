@@ -3,22 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PromptStack</title>
+  <title>PromptStack - AI Prompt Version Control</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 </head>
 <body>
   <div class="app">
+    <!-- Keyboard shortcuts hint -->
+    <div class="shortcuts-hint" id="shortcutsHint">
+      <span><kbd>⌘</kbd><kbd>K</kbd> Search</span>
+      <span><kbd>⌘</kbd><kbd>N</kbd> New</span>
+    </div>
+    
     <header>
       <div class="header-left">
-        <h1><span class="logo-icon">&#x1F4DA;</span> PromptStack</h1>
-        <span class="tagline">Prompt version control for AI power users</span>
+        <h1>
+          <span class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              <path d="M8 7h8M8 11h8M8 15h4"/>
+            </svg>
+          </span>
+          PromptStack
+        </h1>
+        <span class="tagline">Version control for AI power users</span>
       </div>
       <div class="header-right">
-        <div class="search-bar">
+        <div class="search-bar" id="searchBar">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" id="searchInput" placeholder="Search prompts...">
+          <span class="search-shortcut"><kbd>⌘</kbd><kbd>K</kbd></span>
         </div>
-        <button class="btn btn-primary" onclick="openCreateModal()">
+        <button class="btn btn-secondary" onclick="openImportModal()" title="Import/Export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </button>
+        <button class="btn btn-primary" onclick="openCreateModal()" id="newPromptBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           New Prompt
         </button>
@@ -46,28 +70,48 @@
         <button class="modal-close" onclick="closeModal('createModal')">&times;</button>
       </div>
       <form id="createForm" onsubmit="handleCreate(event)">
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" name="name" required placeholder="e.g., Code Review Helper">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" required placeholder="e.g., Code Review Helper">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category">
+              <option value="general">General</option>
+              <option value="coding">Coding</option>
+              <option value="writing">Writing</option>
+              <option value="analysis">Analysis</option>
+              <option value="creative">Creative</option>
+              <option value="business">Business</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label>Description</label>
           <input type="text" name="description" placeholder="What does this prompt do?">
         </div>
         <div class="form-group">
-          <label>Category</label>
-          <select name="category">
-            <option value="general">General</option>
-            <option value="coding">Coding</option>
-            <option value="writing">Writing</option>
-            <option value="analysis">Analysis</option>
-            <option value="creative">Creative</option>
-            <option value="business">Business</option>
-          </select>
+          <label>Tags <span class="label-hint">(comma-separated)</span></label>
+          <input type="text" name="tags" placeholder="e.g., refactoring, security, python">
         </div>
         <div class="form-group">
           <label>Content</label>
-          <textarea name="content" rows="8" placeholder="Enter your prompt content here..."></textarea>
+          <textarea name="content" rows="8" placeholder="Enter your prompt content here...&#10;&#10;Tip: Use {{variable}} for dynamic placeholders."></textarea>
+          <div class="textarea-footer">
+            <span class="char-count" id="createCharCount">0 characters</span>
+            <span class="var-hint">Use <code>{{variable}}</code> for placeholders</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target Model <span class="label-hint">(optional)</span></label>
+          <div class="model-presets">
+            <button type="button" class="model-preset" onclick="setModel(this, 'GPT-4o')">GPT-4o</button>
+            <button type="button" class="model-preset" onclick="setModel(this, 'Claude 3.5')">Claude 3.5</button>
+            <button type="button" class="model-preset" onclick="setModel(this, 'Gemini Pro')">Gemini</button>
+            <button type="button" class="model-preset" onclick="setModel(this, 'Llama 3')">Llama 3</button>
+            <input type="text" name="model" id="createModel" placeholder="Other...">
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Cancel</button>
@@ -98,14 +142,23 @@
         <div class="form-group">
           <label>Content</label>
           <textarea name="content" rows="8" placeholder="Enter the new version content..." required></textarea>
+          <div class="textarea-footer">
+            <span class="char-count" id="versionCharCount">0 characters</span>
+          </div>
         </div>
         <div class="form-group">
-          <label>Notes</label>
-          <input type="text" name="notes" placeholder="What changed in this version?">
+          <label>Notes <span class="label-hint">(what changed?)</span></label>
+          <input type="text" name="notes" placeholder="e.g., Added few-shot examples">
         </div>
         <div class="form-group">
           <label>Model</label>
-          <input type="text" name="model" placeholder="e.g., GPT-4, Claude 3.5">
+          <div class="model-presets">
+            <button type="button" class="model-preset" onclick="setModelVersion(this, 'GPT-4o')">GPT-4o</button>
+            <button type="button" class="model-preset" onclick="setModelVersion(this, 'Claude 3.5')">Claude 3.5</button>
+            <button type="button" class="model-preset" onclick="setModelVersion(this, 'Gemini Pro')">Gemini</button>
+            <button type="button" class="model-preset" onclick="setModelVersion(this, 'Llama 3')">Llama 3</button>
+            <input type="text" name="model" id="versionModel" placeholder="Other...">
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" onclick="closeModal('versionModal')">Cancel</button>
@@ -122,6 +175,43 @@
         <button class="modal-close" onclick="closeModal('diffModal')">&times;</button>
       </div>
       <div id="diffContent"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="importModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Import / Export</h2>
+        <button class="modal-close" onclick="closeModal('importModal')">&times;</button>
+      </div>
+      <div class="import-export-body">
+        <div class="ie-section">
+          <h3>Export Prompts</h3>
+          <p class="ie-desc">Download all your prompts as a JSON file for backup or migration.</p>
+          <button class="btn btn-primary" onclick="exportPrompts()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export All Prompts
+          </button>
+        </div>
+        <div class="ie-divider"></div>
+        <div class="ie-section">
+          <h3>Import Prompts</h3>
+          <p class="ie-desc">Import prompts from a JSON file. This will add to your existing prompts.</p>
+          <label class="btn btn-secondary import-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Import from File
+            <input type="file" id="importFile" accept=".json" onchange="importPrompts(event)" hidden>
+          </label>
+        </div>
+      </div>
     </div>
   </div>
 

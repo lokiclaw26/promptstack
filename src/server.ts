@@ -23,12 +23,25 @@ app.get('/api/prompts', (_req, res) => {
 });
 
 app.post('/api/prompts', (req, res) => {
-  const { name, description, category, content } = req.body;
+  const { name, description, category, content, tags, model } = req.body;
   if (!name) {
     res.status(400).json({ error: 'Name is required' });
     return;
   }
-  const prompt = ps.create(name, description || '', category || 'general', content || '');
+  const prompt = ps.create(
+    name, 
+    description || '', 
+    category || 'general', 
+    content || '',
+    tags || []
+  );
+  
+  // If model is provided, update the first version's metadata
+  if (model && prompt.versions[0]) {
+    prompt.versions[0].metadata.model = model;
+    ps.saveData();
+  }
+  
   res.json(prompt);
 });
 

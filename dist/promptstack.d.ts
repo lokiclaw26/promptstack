@@ -21,6 +21,7 @@ export interface Prompt {
     name: string;
     description: string;
     category: string;
+    tags: string[];
     versions: PromptVersion[];
     currentVersion: number;
     createdAt: string;
@@ -31,8 +32,10 @@ export declare class PromptStack {
     private data;
     constructor(dataPath?: string);
     private load;
+    reload(): void;
     private save;
-    create(name: string, description: string, category: string, content: string): Prompt;
+    saveData(): void;
+    create(name: string, description: string, category: string, content: string, tags?: string[]): Prompt;
     addVersion(promptId: string, content: string, metadata?: PromptVersion['metadata']): PromptVersion | null;
     getAll(): Prompt[];
     get(promptId: string): Prompt | null;
